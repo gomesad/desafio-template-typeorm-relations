@@ -1,5 +1,6 @@
 import { getRepository, Repository } from 'typeorm';
 
+import AppError from '@shared/errors/AppError';
 import ICustomersRepository from '@modules/customers/repositories/ICustomersRepository';
 import ICreateCustomerDTO from '@modules/customers/dtos/ICreateCustomerDTO';
 import Customer from '../entities/Customer';
@@ -12,6 +13,12 @@ class CustomersRepository implements ICustomersRepository {
   }
 
   public async create({ name, email }: ICreateCustomerDTO): Promise<Customer> {
+    const customerExists = await this.findByEmail(email);
+
+    if (customerExists) {
+      throw new AppError('Customer already exists.');
+    }
+
     const customer = this.ormRepository.create({
       name,
       email,
